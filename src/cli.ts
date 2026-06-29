@@ -81,9 +81,11 @@ export async function main(argv: string[]): Promise<number> {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2))
-    .then((code) => process.exit(code))
+    .then((code) => {
+      process.exitCode = code;
+    })
     .catch((err) => {
       console.error(`error: ${err instanceof Error ? err.message : String(err)}`);
-      process.exit(2);
+      process.exitCode = 2;
     });
 }
