@@ -16,3 +16,8 @@ test("parses --no-thinking and the eval form", () => {
   assert.equal(f.thinking, false);
   assert.equal(f.dir, "fx");
 });
+
+test("a value flag with no following value keeps its default", () => {
+  assert.equal(parseFlags(["eval", "--dir"]).dir, "fixtures");
+  assert.equal(parseFlags(["log.txt", "--model"]).model, undefined);
+});

@@ -1,5 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type Anthropic from "@anthropic-ai/sdk";
 import { loadFixtures, runEval, type Fixture } from "../src/eval.ts";
 import { ISSUE_CATEGORIES, type Diagnosis } from "../src/schema.ts";
@@ -24,6 +27,15 @@ test("loadFixtures loads all six fixtures with valid categories", () => {
     assert.ok((ISSUE_CATEGORIES as readonly string[]).includes(fx.expected));
     assert.ok(fx.input.length > 0);
   }
+});
+
+test("loadFixtures rejects a fixture with an invalid category", () => {
+  const dir = mkdtempSync(join(tmpdir(), "nt-fx-"));
+  const bad = join(dir, "bad");
+  mkdirSync(bad);
+  writeFileSync(join(bad, "input.txt"), "stuff");
+  writeFileSync(join(bad, "expected.json"), JSON.stringify({ issue_category: "not_a_category" }));
+  assert.throws(() => loadFixtures(dir));
 });
 
 test("runEval scores accuracy and sums cost", async () => {

@@ -22,11 +22,19 @@ export function parseFlags(args: string[]): Flags {
   let dir = "fixtures";
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
-    if (a === "--model") model = args[++i];
-    else if (a === "--no-thinking") thinking = false;
-    else if (a === "--json") json = true;
-    else if (a === "--dir") dir = args[++i];
-    else positionals.push(a);
+    if (a === "--model") {
+      const v = args[++i];
+      if (v !== undefined) model = v;
+    } else if (a === "--no-thinking") {
+      thinking = false;
+    } else if (a === "--json") {
+      json = true;
+    } else if (a === "--dir") {
+      const v = args[++i];
+      if (v !== undefined) dir = v;
+    } else {
+      positionals.push(a);
+    }
   }
   return { positionals, model, thinking, json, dir };
 }
@@ -63,7 +71,7 @@ export async function main(argv: string[]): Promise<number> {
   }
   const model = flags.model ?? DEFAULT_MODEL;
   const { diagnosis, usage } = await diagnose(readFileSync(file, "utf8"), {
-    model: flags.model,
+    model,
     thinking: flags.thinking,
   });
   console.log(flags.json ? JSON.stringify(diagnosis, null, 2) : renderDiagnosis(diagnosis));

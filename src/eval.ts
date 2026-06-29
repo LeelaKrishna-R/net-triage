@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type Anthropic from "@anthropic-ai/sdk";
 import { diagnose, DEFAULT_MODEL } from "./diagnose.ts";
 import { costUsd } from "./cost.ts";
+import { ISSUE_CATEGORIES } from "./schema.ts";
 
 export interface Fixture {
   name: string;
@@ -33,7 +34,16 @@ export function loadFixtures(dir: string): Fixture[] {
     .map((e) => {
       const input = readFileSync(join(dir, e.name, "input.txt"), "utf8");
       const meta = JSON.parse(readFileSync(join(dir, e.name, "expected.json"), "utf8"));
-      return { name: e.name, input, expected: meta.issue_category as string };
+      const expected = meta?.issue_category;
+      if (
+        typeof expected !== "string" ||
+        !(ISSUE_CATEGORIES as readonly string[]).includes(expected)
+      ) {
+        throw new Error(
+          `fixture "${e.name}": expected.json has an invalid issue_category: ${JSON.stringify(expected)}`,
+        );
+      }
+      return { name: e.name, input, expected };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -47,7 +57,7 @@ export async function runEval(
   for (const fx of fixtures) {
     const { diagnosis, usage } = await diagnose(fx.input, {
       client: options.client,
-      model: options.model,
+      model,
       thinking: options.thinking,
     });
     cases.push({
