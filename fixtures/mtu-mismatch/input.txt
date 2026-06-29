@@ -1,0 +1,35 @@
+R1# show interfaces GigabitEthernet0/1
+GigabitEthernet0/1 is up, line protocol is up
+  Hardware is iGbE, address is 0050.56a1.0b01 (bia 0050.56a1.0b01)
+  Internet address is 10.20.30.1/30
+  MTU 9000 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Full Duplex, 1Gbps, media type is RJ45
+  0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+  0 output errors, 0 collisions, 0 interface resets
+
+R2# show interfaces GigabitEthernet0/0
+GigabitEthernet0/0 is up, line protocol is up
+  Internet address is 10.20.30.2/30
+  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Full Duplex, 1Gbps, media type is RJ45
+
+R1# ping 10.20.30.2 size 1400 df-bit
+Type escape sequence to abort.
+Sending 5, 1400-byte ICMP Echos to 10.20.30.2, timeout is 2 seconds:
+Packet sent with the DF bit set
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 ms
+
+R1# ping 10.20.30.2 size 8000 df-bit
+Type escape sequence to abort.
+Sending 5, 8000-byte ICMP Echos to 10.20.30.2, timeout is 2 seconds:
+Packet sent with the DF bit set
+.....
+Success rate is 0 percent (0/5)
+
+Jun 29 14:02:17.331: %IP-3-FRAGMENT: Packet needs to be fragmented but DF set.
+  src 10.20.30.1, dst 10.20.30.2, next-hop MTU 1500

@@ -1,0 +1,30 @@
+R1# show interfaces GigabitEthernet0/1
+GigabitEthernet0/1 is up, line protocol is up
+  Hardware is iGbE, address is 00a1.b2c3.0401 (bia 00a1.b2c3.0401)
+  Internet address is 10.20.10.1/24
+  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec
+  Full Duplex, 1000Mbps, link type is auto, media type is RJ45
+  Input queue: 0/75/0/0 (size/max/drops/flushes); 0 output drops
+
+R1# show running-config interface GigabitEthernet0/1
+interface GigabitEthernet0/1
+ ip address 10.20.10.1 255.255.255.0
+ ip access-group BLOCK-DB in
+ duplex full
+ speed 1000
+end
+
+! Host 10.20.10.55 reports: telnet to 10.30.40.20:1433 times out, ping fails.
+
+R1# show access-lists BLOCK-DB
+Extended IP access list BLOCK-DB
+    10 deny tcp host 10.20.10.55 host 10.30.40.20 eq 1433 (2847 matches)
+    20 permit ip any any (15302 matches)
+
+R1# show access-lists BLOCK-DB
+Extended IP access list BLOCK-DB
+    10 deny tcp host 10.20.10.55 host 10.30.40.20 eq 1433 (2903 matches)
+    20 permit ip any any (15388 matches)
+
+Jun 29 14:22:07.118: %SEC-6-IPACCESSLOGP: list BLOCK-DB denied tcp 10.20.10.55(51544) -> 10.30.40.20(1433), 12 packets
+Jun 29 14:22:39.402: %SEC-6-IPACCESSLOGP: list BLOCK-DB denied tcp 10.20.10.55(51544) -> 10.30.40.20(1433), 9 packets

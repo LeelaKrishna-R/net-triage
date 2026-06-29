@@ -1,0 +1,31 @@
+R1# show ip ospf neighbor
+
+R1#
+! No output -- adjacency never reaches FULL. Repeated logs below.
+
+R1#
+%OSPF-5-ADJCHG: Process 1, Nbr 10.0.12.2 on GigabitEthernet0/1 from EXSTART to DOWN, Neighbor Down: Dead timer expired
+%OSPF-5-ADJCHG: Process 1, Nbr 10.0.12.2 on GigabitEthernet0/1 from DOWN to INIT, Received Hello
+
+R1# show ip ospf interface GigabitEthernet0/1
+GigabitEthernet0/1 is up, line protocol is up
+  Internet Address 10.0.12.1/30, Area 0, Attached via Network Statement
+  Process ID 1, Router ID 1.1.1.1, Network Type BROADCAST, Cost: 1
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+  Neighbor Count is 0, Adjacent neighbor count is 0
+  Suppress hello for 0 neighbor(s)
+
+R2# show ip ospf interface GigabitEthernet0/0
+GigabitEthernet0/0 is up, line protocol is up
+  Internet Address 10.0.12.2/30, Area 0, Attached via Network Statement
+  Process ID 1, Router ID 2.2.2.2, Network Type BROADCAST, Cost: 1
+  Timer intervals configured, Hello 30, Dead 120, Wait 120, Retransmit 5
+  Neighbor Count is 0, Adjacent neighbor count is 0
+
+R1# ping 10.0.12.2
+Type escape sequence to abort. Sending 5, 100-byte ICMP Echos to 10.0.12.2:
+!!!!!  Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 ms
+
+R1# show interfaces GigabitEthernet0/1 | include duplex|MTU
+  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+  Full-duplex, 1000Mb/s, media type is RJ45

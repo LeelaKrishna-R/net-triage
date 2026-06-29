@@ -1,0 +1,42 @@
+DSW-CORE1# show interfaces trunk
+
+Port        Mode             Encapsulation  Status        Native vlan
+Gi1/0/24    on               802.1q         trunking      99
+
+Port        Vlans allowed on trunk
+Gi1/0/24    1-4094
+
+Port        Vlans allowed and active in management domain
+Gi1/0/24    1,10,20,99
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gi1/0/24    1,10,20,99
+
+DSW-CORE1# show running-config interface Gi1/0/24
+interface GigabitEthernet1/0/24
+ description Uplink to ASW-EDGE2
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 99
+ switchport mode trunk
+end
+
+ASW-EDGE2# show running-config interface Gi0/1
+interface GigabitEthernet0/1
+ description Uplink to DSW-CORE1
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast
+end
+
+ASW-EDGE2# show interfaces trunk
+ASW-EDGE2#                       <-- no trunking interfaces; uplink is in access mode
+
+DSW-CORE1#
+*Jun 29 14:02:11.337: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on GigabitEthernet1/0/24 (99), with ASW-EDGE2 GigabitEthernet0/1 (10).
+*Jun 29 14:02:13.901: %SPANTREE-2-RECV_PVID_ERR: Received BPDU with inconsistent peer vlan id 10 on GigabitEthernet1/0/24 VLAN99.
+*Jun 29 14:02:13.902: %SPANTREE-2-BLOCK_PVID_LOCAL: Blocking GigabitEthernet1/0/24 on VLAN0099. Inconsistent local vlan.
+*Jun 29 14:02:13.904: %SPANTREE-2-BLOCK_PVID_PEER: Blocking GigabitEthernet1/0/24 on VLAN0010. Inconsistent peer vlan.
+
+DSW-CORE1# show interfaces Gi1/0/24 | include duplex|line protocol
+GigabitEthernet1/0/24 is up, line protocol is up (connected)
+  Full-duplex, 1000Mb/s, media type is 10/100/1000BaseTX

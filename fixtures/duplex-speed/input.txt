@@ -1,0 +1,34 @@
+R1#show logging | include DUPLEX
+Jun 29 14:02:11.337: %CDP-4-DUPLEX_MISMATCH: duplex mismatch discovered on GigabitEthernet0/1 (not full duplex), with SW2-ACCESS GigabitEthernet1/0/24 (full duplex).
+
+R1#show interfaces GigabitEthernet0/1
+GigabitEthernet0/1 is up, line protocol is up
+  Hardware is iGbE, address is 00a2.ee31.4c01 (bia 00a2.ee31.4c01)
+  Internet address is 10.10.20.1/30
+  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+     reliability 233/255, txload 8/255, rxload 11/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Half-duplex, 100Mb/s, media type is RJ45
+  input flow-control is off, output flow-control is unsupported
+  Last input 00:00:00, output 00:00:00, output hang never
+  5 minute input rate 39000 bits/sec, 41 packets/sec
+  5 minute output rate 31000 bits/sec, 33 packets/sec
+     814523 packets input, 588392011 bytes, 0 no buffer
+     Received 22417 broadcasts (0 IP multicasts)
+     9183 runts, 0 giants, 0 throttles
+     11472 input errors, 8211 CRC, 3074 frame, 0 overrun, 0 ignored
+     0 watchdog, 0 multicast, 0 pause input
+     742118 packets output, 511203847 bytes, 0 underruns
+     0 output errors, 18644 collisions, 1 interface resets
+     0 unknown protocol drops
+     0 babbles, 6391 late collision, 0 deferred
+     0 lost carrier, 0 no carrier, 0 pause output
+
+R1#show running-config interface GigabitEthernet0/1
+Building configuration...
+interface GigabitEthernet0/1
+ ip address 10.10.20.1 255.255.255.252
+ duplex half
+ speed 100
+end

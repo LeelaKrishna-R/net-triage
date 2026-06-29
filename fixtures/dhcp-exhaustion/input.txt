@@ -1,0 +1,35 @@
+R1# show ip dhcp pool
+
+Pool VLAN10_DATA :
+ Utilization mark (high/low)    : 100 / 0
+ Subnet size (first/next)       : 0 / 0
+ Total addresses                : 253
+ Leased addresses               : 253
+ Excluded addresses             : 1
+ Pending event                  : none
+ 1 subnet is currently in the pool :
+ Current index        IP address range                    Leased/Excluded/Total
+ 10.10.10.255         10.10.10.1      - 10.10.10.254       253  / 1  / 254
+
+R1# show ip dhcp pool VLAN10_DATA | include Leased|Total|Utilization
+ Utilization mark (high/low)    : 100 / 0
+ Total addresses                : 253
+ Leased addresses               : 253
+
+R1# show ip dhcp binding | include Total|Lease
+Total number of bindings displayed: 253
+
+R1# show ip dhcp binding
+Bindings from all pools not associated with VRF:
+IP address       Client-ID/              Lease expiration        Type       State
+                 Hardware address/
+10.10.10.1       0100.1a2b.3c4d.01       Jun 30 2026 02:14 AM    Automatic  Active
+10.10.10.2       0100.1a2b.3c4d.02       Jun 30 2026 02:15 AM    Automatic  Active
+10.10.10.3       0100.1a2b.3c4d.03       Jun 30 2026 02:15 AM    Automatic  Active
+   ... (250 additional active bindings omitted) ...
+10.10.10.254     0100.1a2b.3c4d.fe       Jun 30 2026 02:31 AM    Automatic  Active
+
+R1# show logging | include DHCPD
+Jun 29 14:07:42.913: %DHCPD-4-POOL_EXHAUSTED: DHCP pool VLAN10_DATA exhausted, no free addresses to assign to client on interface Vlan10
+Jun 29 14:07:51.488: DHCPD: there is no address pool for 10.10.10.1.
+Jun 29 14:08:03.221: %DHCPD-4-POOL_EXHAUSTED: DHCP pool VLAN10_DATA exhausted, no free addresses to assign to client on interface Vlan10
