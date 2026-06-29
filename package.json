@@ -1,0 +1,30 @@
+{
+  "name": "net-triage",
+  "version": "0.1.0",
+  "description": "AI agent that triages network logs and configs into structured, evidence-grounded diagnoses.",
+  "type": "module",
+  "bin": {
+    "net-triage": "src/cli.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit && prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "diagnose": "node src/cli.ts",
+    "eval": "node src/cli.ts eval"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "prettier": "^3.9.1",
+    "typescript": "^6.0.3"
+  }
+}

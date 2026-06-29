@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# local-only — kept off the public repo (no AI-process artifacts)
+CLAUDE.md
+.claude/
+docs/superpowers/
