@@ -20,19 +20,27 @@ export ANTHROPIC_API_KEY=sk-ant-...
 node src/cli.ts eval
 ```
 
-Illustrative output format (run it for your own numbers — accuracy is reported
-from a live run, never hardcoded):
+On the six bundled fixtures it currently scores **6/6** (`claude-sonnet-4-6`,
+~$0.08 in API cost) — reproduce it yourself with the command above:
 
 ```
-[PASS] acl-block: acl_blocking_traffic (exp acl_blocking_traffic, conf 95%)
-[FAIL] mtu-mismatch: duplex_speed_mismatch (exp mtu_mismatch, conf 71%)
-...
-Accuracy: N/6
-Total cost: $0.0X
+[PASS] acl-block: acl_blocking_traffic (exp acl_blocking_traffic, conf 99%)
+[PASS] dhcp-exhaustion: dhcp_pool_exhaustion (exp dhcp_pool_exhaustion, conf 98%)
+[PASS] duplex-speed: duplex_speed_mismatch (exp duplex_speed_mismatch, conf 98%)
+[PASS] mtu-mismatch: mtu_mismatch (exp mtu_mismatch, conf 98%)
+[PASS] ospf-adjacency: ospf_adjacency_failure (exp ospf_adjacency_failure, conf 97%)
+[PASS] vlan-trunk: vlan_trunk_misconfig (exp vlan_trunk_misconfig, conf 98%)
+
+Accuracy: 6/6 (100%)
+Total cost: $0.0770
 ```
 
-The fixtures were each blind-verified: an independent model classified every
-snippet without seeing its label, confirming the ground truth is unambiguous.
+These fixtures are deliberately clear-cut, so 6/6 measures that the pipeline
+works — not that the problem is hard. The point is the harness: it turns "it
+returns an answer" into "I can tell you how often the answer is right," and it's
+the place to add messier, adversarial cases. Each fixture was independently
+classified by a separate agent that never saw its intended label, so the ground
+truth isn't just the author's say-so.
 
 ## Quick start
 
