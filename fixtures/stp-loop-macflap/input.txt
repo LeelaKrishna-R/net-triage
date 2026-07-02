@@ -1,0 +1,13 @@
+SW1#
+%SW_MATM-4-MACFLAP_NOTIF: Host 0011.2233.4455 in vlan 10 is flapping between port GigabitEthernet0/1 and port GigabitEthernet0/2
+%SW_MATM-4-MACFLAP_NOTIF: Host 00aa.bbcc.ddee in vlan 10 is flapping between port GigabitEthernet0/1 and port GigabitEthernet0/2
+
+SW1# show spanning-tree vlan 10 | include changes|Topology
+  Number of topology changes 4211 last change occurred 00:00:01 ago
+
+SW1# show processes cpu | include five seconds
+CPU utilization for five seconds: 99%/61%; one minute: 97%; five minutes: 95%
+
+SW1# show interfaces GigabitEthernet0/1 | include rate|broadcast
+  5 minute input rate 512000000 bits/sec, 890000 packets/sec
+     9983210 broadcasts (0 IP multicasts)

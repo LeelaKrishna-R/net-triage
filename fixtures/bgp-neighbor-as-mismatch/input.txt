@@ -1,0 +1,19 @@
+R1# show ip bgp summary
+BGP router identifier 1.1.1.1, local AS number 65001
+BGP table version is 1, main routing table version 1
+
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.0.0.2        4        65002       0       0        1    0    0 never     Active
+
+R1#
+%BGP-3-NOTIFICATION: sent to neighbor 10.0.0.2 passive 2/2 (peer in wrong AS) 2 bytes FDE9
+%BGP-5-NBR_RESET: Neighbor 10.0.0.2 reset (BGP Notification sent)
+%BGP-5-ADJCHANGE: neighbor 10.0.0.2 Down BGP Notification sent
+
+R1# show running-config | section router bgp
+router bgp 65001
+ neighbor 10.0.0.2 remote-as 65003
+
+R2# show running-config | section router bgp
+router bgp 65002
+ neighbor 10.0.0.1 remote-as 65001

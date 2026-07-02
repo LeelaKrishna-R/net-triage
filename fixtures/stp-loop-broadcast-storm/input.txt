@@ -1,0 +1,14 @@
+SW2# ! a second uplink cable was just patched between SW2 and SW3
+%SPANTREE-2-LOOPGUARD_BLOCK: Loop guard blocking port GigabitEthernet0/24 on VLAN0001.
+%SW_MATM-4-MACFLAP_NOTIF: Host 5254.0012.3456 in vlan 1 is flapping between port Gi0/23 and port Gi0/24
+%SW_MATM-4-MACFLAP_NOTIF: Host 5254.00ab.cdef in vlan 1 is flapping between port Gi0/23 and port Gi0/24
+
+SW2# show spanning-tree vlan 1 | include Topology|changes
+  Number of topology changes 18734 last change occurred 00:00:00 ago
+
+SW2# show interfaces GigabitEthernet0/23 | include rate|broadcast
+  5 minute input rate 940000000 bits/sec, 1200000 packets/sec
+     21134560 broadcasts (0 IP multicasts)
+
+SW2# show processes cpu | include five seconds
+CPU utilization for five seconds: 100%/74%; one minute: 99%; five minutes: 98%

@@ -1,0 +1,21 @@
+R1#
+%IOSXE-4-NAT: NAT pool NATPOOL is out of addresses, packet dropped
+
+R1# show ip nat statistics
+Total active translations: 5 (0 static, 5 dynamic; 0 extended)
+Outside interfaces:
+  GigabitEthernet0/0
+Inside interfaces:
+  GigabitEthernet0/1
+Hits: 44120  Misses: 88213
+Dynamic mappings:
+-- Inside Source
+[Id: 1] access-list NAT-INSIDE pool NATPOOL refcount 5
+ pool NATPOOL: netmask 255.255.255.248
+        start 203.0.113.2 end 203.0.113.6
+        type generic, total addresses 5, allocated 5 (100%), misses 88213
+
+R1# show running-config | include ip nat inside source
+ip nat inside source list NAT-INSIDE pool NATPOOL
+
+R1# ! roughly 40 inside hosts share a 5-address pool with no overload keyword

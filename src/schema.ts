@@ -2,11 +2,15 @@ import { z } from "zod";
 
 export const ISSUE_CATEGORIES = [
   "ospf_adjacency_failure",
+  "bgp_neighbor_down",
   "vlan_trunk_misconfig",
+  "stp_loop",
   "acl_blocking_traffic",
+  "nat_translation_failure",
   "mtu_mismatch",
   "duplex_speed_mismatch",
   "dhcp_pool_exhaustion",
+  "port_security_violation",
 ] as const;
 
 export const DiagnosisSchema = z.object({

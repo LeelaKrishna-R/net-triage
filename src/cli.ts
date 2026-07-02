@@ -58,6 +58,11 @@ export async function main(argv: string[]): Promise<number> {
       const conf = (c.confidence * 100).toFixed(0);
       console.log(`[${mark}] ${c.name}: ${c.predicted} (exp ${c.expected}, conf ${conf}%)`);
     }
+    console.log("\nBy category:");
+    for (const category of Object.keys(result.byCategory).sort()) {
+      const score = result.byCategory[category];
+      console.log(`  ${category}: ${score.correct}/${score.total}`);
+    }
     const pct = (result.accuracy * 100).toFixed(0);
     console.log(`\nAccuracy: ${result.correct}/${result.total} (${pct}%)`);
     console.log(`Total cost: $${result.totalCostUsd.toFixed(4)}`);

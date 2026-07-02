@@ -20,12 +20,16 @@ function fakeClient(parse: (params: unknown) => Promise<unknown>): Anthropic {
   return { messages: { parse } } as unknown as Anthropic;
 }
 
-test("loadFixtures loads all six fixtures with valid categories", () => {
+test("loadFixtures loads valid fixtures covering every category", () => {
   const fixtures = loadFixtures("fixtures");
-  assert.equal(fixtures.length, 6);
+  assert.ok(fixtures.length >= ISSUE_CATEGORIES.length);
   for (const fx of fixtures) {
     assert.ok((ISSUE_CATEGORIES as readonly string[]).includes(fx.expected));
     assert.ok(fx.input.length > 0);
+  }
+  const covered = new Set(fixtures.map((fx) => fx.expected));
+  for (const category of ISSUE_CATEGORIES) {
+    assert.ok(covered.has(category), `no fixture for category: ${category}`);
   }
 });
 
@@ -54,4 +58,8 @@ test("runEval scores accuracy and sums cost", async () => {
   assert.equal(result.accuracy, 0.5);
   // each call: 1000*3/1e6 + 1000*15/1e6 = 0.018; two calls = 0.036
   assert.ok(Math.abs(result.totalCostUsd - 0.036) < 1e-9);
+  assert.deepEqual(result.byCategory, {
+    mtu_mismatch: { correct: 1, total: 1 },
+    acl_blocking_traffic: { correct: 0, total: 1 },
+  });
 });

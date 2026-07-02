@@ -11,8 +11,9 @@ const valid = {
   confidence: 0.86,
 };
 
-test("ISSUE_CATEGORIES has the six categories", () => {
-  assert.equal(ISSUE_CATEGORIES.length, 6);
+test("ISSUE_CATEGORIES lists ten unique categories", () => {
+  assert.equal(ISSUE_CATEGORIES.length, 10);
+  assert.equal(new Set(ISSUE_CATEGORIES).size, ISSUE_CATEGORIES.length);
 });
 
 test("accepts a valid diagnosis", () => {

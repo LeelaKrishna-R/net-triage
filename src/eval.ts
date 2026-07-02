@@ -20,12 +20,18 @@ export interface EvalCase {
   costUsd: number;
 }
 
+export interface CategoryScore {
+  correct: number;
+  total: number;
+}
+
 export interface EvalResult {
   cases: EvalCase[];
   correct: number;
   total: number;
   accuracy: number;
   totalCostUsd: number;
+  byCategory: Record<string, CategoryScore>;
 }
 
 export function loadFixtures(dir: string): Fixture[] {
@@ -71,11 +77,18 @@ export async function runEval(
   }
   const correct = cases.filter((c) => c.correct).length;
   const total = cases.length;
+  const byCategory: Record<string, CategoryScore> = {};
+  for (const c of cases) {
+    const score = (byCategory[c.expected] ??= { correct: 0, total: 0 });
+    score.total++;
+    if (c.correct) score.correct++;
+  }
   return {
     cases,
     correct,
     total,
     accuracy: total ? correct / total : 0,
     totalCostUsd: cases.reduce((s, c) => s + c.costUsd, 0),
+    byCategory,
   };
 }

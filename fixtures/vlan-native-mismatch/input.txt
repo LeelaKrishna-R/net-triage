@@ -1,0 +1,16 @@
+SW1#
+%CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on GigabitEthernet0/1 (99), with SW2 GigabitEthernet0/1 (1).
+
+SW1# show interfaces GigabitEthernet0/1 switchport | include Mode|Native
+Administrative Mode: trunk
+Operational Mode: trunk
+Trunking Native Mode VLAN: 99 (VLAN0099)
+
+SW2# show interfaces GigabitEthernet0/1 switchport | include Mode|Native
+Administrative Mode: trunk
+Operational Mode: trunk
+Trunking Native Mode VLAN: 1 (default)
+
+SW1# show interfaces trunk
+Port        Mode      Encapsulation  Status        Native vlan
+Gi0/1       on        802.1q         trunking      99

@@ -1,0 +1,16 @@
+R3#
+%BGP-3-NOTIFICATION: received from neighbor 192.168.12.2 4/0 (hold time expired) 0 bytes
+%BGP-5-NBR_RESET: Neighbor 192.168.12.2 reset (BGP Notification received)
+%BGP-5-ADJCHANGE: neighbor 192.168.12.2 Down BGP Notification received
+
+R3# show ip bgp summary
+BGP router identifier 3.3.3.3, local AS number 64512
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+192.168.12.2    4        64512     442     455        0    0    0 00:00:07  Idle
+
+R3# show ip bgp neighbors 192.168.12.2 | include BGP state|hold time|Keepalive
+  BGP state = Idle
+  Last read 00:00:07, last write 00:00:07, hold time is 180, keepalive interval is 60 seconds
+
+R3# ping 192.168.12.2 repeat 100
+Success rate is 61 percent (61/100), round-trip min/avg/max = 1/48/240 ms

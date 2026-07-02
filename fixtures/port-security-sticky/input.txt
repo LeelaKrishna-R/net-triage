@@ -1,0 +1,24 @@
+SW2# ! a user swapped their PC on Fa0/12 and the port went down
+%PORT_SECURITY-2-PSECURE_VIOLATION: Security violation occurred, caused by MAC address 2c54.9143.7b01 on port FastEthernet0/12.
+%PM-4-ERR_DISABLE: psecure-violation error detected on Fa0/12, putting Fa0/12 in err-disable state
+
+SW2# show port-security interface FastEthernet0/12
+Port Security              : Enabled
+Port Status                : Secure-shutdown
+Violation Mode             : Shutdown
+Maximum MAC Addresses      : 1
+Total MAC Addresses        : 1
+Sticky MAC Addresses       : 1
+Last Source Address:Vlan   : 2c54.9143.7b01:5
+Security Violation Count   : 1
+
+SW2# show running-config interface FastEthernet0/12
+interface FastEthernet0/12
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security mac-address sticky 0011.a0b0.c0d0
+
+SW2# show interfaces FastEthernet0/12 status
+Port      Name    Status         Vlan   Duplex  Speed Type
+Fa0/12            err-disabled   5      auto    auto  10/100BaseTX

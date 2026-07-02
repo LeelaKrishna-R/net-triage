@@ -1,5 +1,7 @@
 # net-triage
 
+[![CI](https://github.com/LeelaKrishna-R/net-triage/actions/workflows/ci.yml/badge.svg)](https://github.com/LeelaKrishna-R/net-triage/actions/workflows/ci.yml)
+
 **An AI agent that triages network logs and configs into structured, evidence-grounded diagnoses.**
 
 Point it at a network log, device-config snippet, or packet-capture summary and it
@@ -10,37 +12,24 @@ Anthropic SDK's native structured outputs.
 ## The eval harness (the part that matters)
 
 Anyone can call an LLM on a log. What makes this a real AI system is that its
-diagnostic quality is **measured**, not asserted. The repo ships six labeled
-fixtures (one per supported failure type) and a runner that scores how often the
-agent picks the right category, printing a per-case breakdown and the total API
-cost:
+diagnostic quality is **measured**, not asserted. The repo ships **16 labeled
+fixtures across 10 failure categories** (real Cisco IOS log and show-command
+output) and a runner that scores how often the agent picks the right category. It
+prints a per-case PASS/FAIL list, a per-category breakdown, the overall accuracy,
+and the total API cost:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-node src/cli.ts eval
+npm run eval
 ```
 
-On the six bundled fixtures it currently scores **6/6** (`claude-sonnet-4-6`,
-~$0.08 in API cost) — reproduce it yourself with the command above:
-
-```
-[PASS] acl-block: acl_blocking_traffic (exp acl_blocking_traffic, conf 99%)
-[PASS] dhcp-exhaustion: dhcp_pool_exhaustion (exp dhcp_pool_exhaustion, conf 98%)
-[PASS] duplex-speed: duplex_speed_mismatch (exp duplex_speed_mismatch, conf 98%)
-[PASS] mtu-mismatch: mtu_mismatch (exp mtu_mismatch, conf 98%)
-[PASS] ospf-adjacency: ospf_adjacency_failure (exp ospf_adjacency_failure, conf 97%)
-[PASS] vlan-trunk: vlan_trunk_misconfig (exp vlan_trunk_misconfig, conf 98%)
-
-Accuracy: 6/6 (100%)
-Total cost: $0.0770
-```
-
-These fixtures are deliberately clear-cut, so 6/6 measures that the pipeline
-works — not that the problem is hard. The point is the harness: it turns "it
-returns an answer" into "I can tell you how often the answer is right," and it's
-the place to add messier, adversarial cases. Each fixture was independently
-classified by a separate agent that never saw its intended label, so the ground
-truth isn't just the author's say-so.
+The score depends on the model, so it is meant to be reproduced rather than taken
+on faith — run it with your own key. The fixtures are deliberately clear-cut: the
+number measures that the pipeline classifies correctly end to end, not that the
+problems are hard. That is the point of the harness — it turns "it returns an
+answer" into "here is how often the answer is right," and it is where messier,
+adversarial and multi-fault cases go next. Each fixture's ground-truth label lives
+in its `expected.json`.
 
 ## Quick start
 
@@ -92,8 +81,9 @@ Diagnosis (`--json`):
 
 ## Supported issue categories
 
-`ospf_adjacency_failure` · `vlan_trunk_misconfig` · `acl_blocking_traffic` ·
-`mtu_mismatch` · `duplex_speed_mismatch` · `dhcp_pool_exhaustion`
+`ospf_adjacency_failure` · `bgp_neighbor_down` · `vlan_trunk_misconfig` ·
+`stp_loop` · `acl_blocking_traffic` · `nat_translation_failure` · `mtu_mismatch` ·
+`duplex_speed_mismatch` · `dhcp_pool_exhaustion` · `port_security_violation`
 
 ## How it works
 
@@ -117,8 +107,9 @@ a web UI.
 
 ## Roadmap
 
-More issue categories, a real pcap-summary adapter, a live read-only device-poll
-mode, optional fix-application behind a confirmation gate, and cache-aware cost.
+A real pcap-summary adapter, a live read-only device-poll mode, optional
+fix-application behind a confirmation gate, cache-aware cost, and messier
+multi-fault fixtures that make the eval genuinely hard.
 
 ## Development
 

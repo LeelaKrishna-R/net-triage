@@ -1,0 +1,11 @@
+SW1#
+%CDP-4-DUPLEX_MISMATCH: duplex mismatch discovered on GigabitEthernet0/3 (not half duplex), with HostA FastEthernet0 (half duplex).
+
+SW1# show interfaces GigabitEthernet0/3 | include duplex|errors|collision|runts
+  Full-duplex, 100Mb/s, media type is 10/100/1000BaseTX
+     3521 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+     18422 late collisions, 4113 runts
+
+SW1# show interfaces GigabitEthernet0/3 | include output drops|rate
+  5 minute output rate 210000 bits/sec, 300 packets/sec
+     output drops: 5521

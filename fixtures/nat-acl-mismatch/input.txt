@@ -1,0 +1,18 @@
+R1# ! inside hosts on 192.168.10.0/24 cannot reach the internet
+
+R1# show ip nat translations
+Pro Inside global      Inside local       Outside local      Outside global
+R1# ! no translations are being created
+
+R1# show running-config | section nat|access-list
+ip nat inside source list 1 interface GigabitEthernet0/0 overload
+access-list 1 permit 10.1.1.0 0.0.0.255
+
+R1# show ip interface brief | include GigabitEthernet
+GigabitEthernet0/0     203.0.113.1     YES manual up    up      (ip nat outside)
+GigabitEthernet0/1     192.168.10.1    YES manual up    up      (ip nat inside)
+
+R1# ping 8.8.8.8 source GigabitEthernet0/1
+Sending 5, 100-byte ICMP Echos to 8.8.8.8:
+.....
+Success rate is 0 percent (0/5)
