@@ -23,6 +23,31 @@ export ANTHROPIC_API_KEY=sk-ant-...
 npm run eval
 ```
 
+On the 16 bundled fixtures it currently scores **16/16** with `claude-sonnet-4-6`
+(about $0.20 in API cost):
+
+```
+[PASS] bgp-neighbor-as-mismatch: bgp_neighbor_down (exp bgp_neighbor_down, conf 99%)
+[PASS] nat-acl-mismatch: nat_translation_failure (exp nat_translation_failure, conf 97%)
+[PASS] stp-loop-macflap: stp_loop (exp stp_loop, conf 97%)
+... 13 more ...
+
+By category:
+  acl_blocking_traffic: 1/1
+  bgp_neighbor_down: 2/2
+  dhcp_pool_exhaustion: 1/1
+  duplex_speed_mismatch: 2/2
+  mtu_mismatch: 1/1
+  nat_translation_failure: 2/2
+  ospf_adjacency_failure: 1/1
+  port_security_violation: 2/2
+  stp_loop: 2/2
+  vlan_trunk_misconfig: 2/2
+
+Accuracy: 16/16 (100%)
+Total cost: $0.1977
+```
+
 The score depends on the model, so it is meant to be reproduced rather than taken
 on faith — run it with your own key. The fixtures are deliberately clear-cut: the
 number measures that the pipeline classifies correctly end to end, not that the
