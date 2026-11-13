@@ -133,7 +133,7 @@ a web UI.
 ## Roadmap
 
 A real pcap-summary adapter, a live read-only device-poll mode, optional
-fix-application behind a confirmation gate, cache-aware cost, and messier
+fix-application behind a confirmation gate, and messier
 multi-fault fixtures that make the eval genuinely hard.
 
 ## Development
