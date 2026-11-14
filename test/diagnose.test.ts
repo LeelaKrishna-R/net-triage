@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type Anthropic from "@anthropic-ai/sdk";
-import { diagnose, DiagnoseError, DEFAULT_MODEL } from "../src/diagnose.ts";
+import { diagnose, DiagnoseError, DEFAULT_MODEL, MAX_INPUT_CHARS } from "../src/diagnose.ts";
 import type { Diagnosis } from "../src/schema.ts";
 
 const sample: Diagnosis = {
@@ -54,4 +54,28 @@ test("retries once then throws DiagnoseError on null parsed_output", async () =>
     (err: unknown) => err instanceof DiagnoseError && err.stopReason === "refusal",
   );
   assert.equal(calls, 2);
+});
+
+test("an empty input is refused before any call", async () => {
+  let called = false;
+  const client = fakeClient(async () => {
+    called = true;
+    return {};
+  });
+  await assert.rejects(() => diagnose("   \n  ", { client }), DiagnoseError);
+  assert.equal(called, false);
+});
+
+test("an input too big for one request is refused before any call, with how big it is", async () => {
+  let called = false;
+  const client = fakeClient(async () => {
+    called = true;
+    return {};
+  });
+  const big = "x".repeat(MAX_INPUT_CHARS + 1);
+  await assert.rejects(
+    () => diagnose(big, { client }),
+    (e: unknown) => e instanceof DiagnoseError && /too big/.test((e as Error).message),
+  );
+  assert.equal(called, false);
 });

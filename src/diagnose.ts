@@ -5,6 +5,9 @@ import type { Usage } from "./cost.ts";
 
 export const DEFAULT_MODEL = "claude-sonnet-4-6";
 
+// About 150k tokens of plain log text: more than this won't fit one request with room for the answer.
+export const MAX_INPUT_CHARS = 600_000;
+
 export const DIAGNOSTIC_SYSTEM_PROMPT = [
   "You are a senior network engineer triaging an incident from a log, device-config",
   "snippet, or packet-capture summary. Diagnose the single most likely problem.",
@@ -36,6 +39,16 @@ export async function diagnose(
   input: string,
   options: DiagnoseOptions = {},
 ): Promise<{ diagnosis: Diagnosis; usage: Usage }> {
+  if (!input.trim()) {
+    throw new DiagnoseError("Nothing to triage: the input is empty.", null);
+  }
+  if (input.length > MAX_INPUT_CHARS) {
+    throw new DiagnoseError(
+      `The input is too big for one request (${input.length.toLocaleString("en-US")} characters, the limit is ` +
+        `${MAX_INPUT_CHARS.toLocaleString("en-US")}). Trim it to the window around the fault and try again.`,
+      null,
+    );
+  }
   const client = options.client ?? new Anthropic();
   const model = options.model ?? DEFAULT_MODEL;
   const thinking = options.thinking ?? true;
