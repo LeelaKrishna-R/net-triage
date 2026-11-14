@@ -39,8 +39,16 @@ export function parseFlags(args: string[]): Flags {
   return { positionals, model, thinking, json, dir };
 }
 
+// "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
+export function readInput(
+  file: string,
+  read: (f: string | number) => string = (f) => readFileSync(f, "utf8"),
+): string {
+  return read(file === "-" ? 0 : file);
+}
+
 const USAGE = [
-  "usage: net-triage <file> [--model m] [--no-thinking] [--json]",
+  "usage: net-triage <file | -> [--model m] [--no-thinking] [--json]",
   "       net-triage eval [--dir fixtures] [--model m] [--no-thinking]",
 ].join("\n");
 
@@ -75,7 +83,7 @@ export async function main(argv: string[]): Promise<number> {
     return 2;
   }
   const model = flags.model ?? DEFAULT_MODEL;
-  const { diagnosis, usage } = await diagnose(readFileSync(file, "utf8"), {
+  const { diagnosis, usage } = await diagnose(readInput(file), {
     model,
     thinking: flags.thinking,
   });

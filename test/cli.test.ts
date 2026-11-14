@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFlags } from "../src/cli.ts";
+import { parseFlags, readInput } from "../src/cli.ts";
 
 test("parses the diagnose form with flags", () => {
   const f = parseFlags(["log.txt", "--model", "claude-opus-4-8", "--json"]);
@@ -20,4 +20,16 @@ test("parses --no-thinking and the eval form", () => {
 test("a value flag with no following value keeps its default", () => {
   assert.equal(parseFlags(["eval", "--dir"]).dir, "fixtures");
   assert.equal(parseFlags(["log.txt", "--model"]).model, undefined);
+});
+
+test("'-' reads stdin (fd 0); anything else is a path", () => {
+  const seen: Array<string | number> = [];
+  const read = (f: string | number) => (seen.push(f), "log");
+  readInput("-", read);
+  readInput("show-log.txt", read);
+  assert.deepEqual(seen, [0, "show-log.txt"]);
+});
+
+test("'-' is a positional, not a flag", () => {
+  assert.deepEqual(parseFlags(["-", "--json"]).positionals, ["-"]);
 });

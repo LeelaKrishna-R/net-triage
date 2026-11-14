@@ -68,6 +68,9 @@ node src/cli.ts fixtures/ospf-adjacency/input.txt
 # Or get raw JSON:
 node src/cli.ts fixtures/acl-block/input.txt --json
 
+# Or pipe a device's output straight in with "-":
+ssh r1 'show logging' | node src/cli.ts -
+
 # Run the eval harness across all fixtures:
 node src/cli.ts eval
 ```
