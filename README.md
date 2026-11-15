@@ -4,6 +4,10 @@
 
 **An AI agent that triages network logs and configs into structured, evidence-grounded diagnoses.**
 
+![net-triage reads an OSPF log and answers ospf_adjacency_failure, high, 90% confidence, with the root cause, the fix and the three evidence lines](docs/demo.svg)
+
+The diagnosis from the [example below](#example), as the CLI prints it. Write-up: [ravuri.dev/work/net-triage](https://www.ravuri.dev/work/net-triage).
+
 Point it at a network log, device-config snippet, or packet-capture summary and it
 returns a strict JSON diagnosis — issue category, severity, root cause, the exact
 evidence lines, a suggested fix, and a confidence score — using Claude with the
