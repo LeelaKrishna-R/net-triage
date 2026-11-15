@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { evalExitCode, parseFlags, readInput } from "../src/cli.ts";
+import { evalExitCode, parseFlags, pickFixtures, readInput } from "../src/cli.ts";
 
 test("parses the diagnose form with flags", () => {
   const f = parseFlags(["log.txt", "--model", "claude-opus-4-8", "--json"]);
@@ -47,4 +47,15 @@ test("--min-accuracy: parsed only as a fraction, and an eval below it exits 1", 
   }
   assert.equal(evalExitCode(0.95, 0.9), 0);
   assert.equal(evalExitCode(0.5), 0);
+});
+
+test("--only runs just the named fixtures and refuses a name that isn't one", () => {
+  const fx = [{ name: "a" }, { name: "b" }, { name: "c" }];
+  assert.deepEqual(parseFlags(["eval", "--only", "a, c"]).only, ["a", "c"]);
+  assert.deepEqual(
+    pickFixtures(fx, ["c", "a"]).map((f) => f.name),
+    ["a", "c"],
+  );
+  assert.equal(pickFixtures(fx).length, 3);
+  assert.throws(() => pickFixtures(fx, ["a", "typo"]), /no fixture named typo/);
 });

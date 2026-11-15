@@ -80,6 +80,9 @@ node src/cli.ts eval
 
 # ...and fail (exit 1) if accuracy drops below a bar, e.g. in CI after a prompt or model change:
 node src/cli.ts eval --min-accuracy 0.9
+
+# Re-check just one or two cases (a name that isn't a fixture is an error, never a quiet 0/0):
+node src/cli.ts eval --only stp-loop-macflap,nat-acl-mismatch
 ```
 
 Requires Node 24+ (the CLI runs straight off TypeScript source via Node's native

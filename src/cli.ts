@@ -13,6 +13,7 @@ export interface Flags {
   json: boolean;
   dir: string;
   minAccuracy?: number;
+  only?: string[];
 }
 
 export function parseFlags(args: string[]): Flags {
@@ -22,6 +23,7 @@ export function parseFlags(args: string[]): Flags {
   let json = false;
   let dir = "fixtures";
   let minAccuracy: number | undefined;
+  let only: string[] | undefined;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--model") {
@@ -34,6 +36,13 @@ export function parseFlags(args: string[]): Flags {
     } else if (a === "--min-accuracy") {
       const v = Number(args[++i]);
       if (Number.isFinite(v) && v >= 0 && v <= 1) minAccuracy = v;
+    } else if (a === "--only") {
+      const v = args[++i];
+      if (v !== undefined)
+        only = v
+          .split(",")
+          .map((n) => n.trim())
+          .filter(Boolean);
     } else if (a === "--dir") {
       const v = args[++i];
       if (v !== undefined) dir = v;
@@ -41,7 +50,7 @@ export function parseFlags(args: string[]): Flags {
       positionals.push(a);
     }
   }
-  return { positionals, model, thinking, json, dir, minAccuracy };
+  return { positionals, model, thinking, json, dir, minAccuracy, only };
 }
 
 // "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
@@ -50,6 +59,17 @@ export function readInput(
   read: (f: string | number) => string = (f) => readFileSync(f, "utf8"),
 ): string {
   return read(file === "-" ? 0 : file);
+}
+
+// --only runs just the named fixtures (re-checking one failure costs one call, not sixteen). A name that isn't a
+// fixture is an error, so a typo can't turn into a quiet "0/0".
+export function pickFixtures<T extends { name: string }>(fixtures: T[], only?: string[]): T[] {
+  if (!only) return fixtures;
+  const names = new Set(fixtures.map((f) => f.name));
+  const unknown = only.filter((n) => !names.has(n));
+  if (unknown.length)
+    throw new Error(`no fixture named ${unknown.join(", ")} (see the fixtures directory)`);
+  return fixtures.filter((f) => only.includes(f.name));
 }
 
 // For CI: with --min-accuracy, an eval below the bar exits 1 so a model or prompt change can't quietly regress.
@@ -66,7 +86,7 @@ export function evalExitCode(accuracy: number, min?: number): number {
 
 const USAGE = [
   "usage: net-triage <file | -> [--model m] [--no-thinking] [--json]",
-  "       net-triage eval [--dir fixtures] [--model m] [--no-thinking] [--min-accuracy 0.9]",
+  "       net-triage eval [--dir fixtures] [--only a,b] [--model m] [--no-thinking] [--min-accuracy 0.9]",
 ].join("\n");
 
 export async function main(argv: string[]): Promise<number> {
@@ -74,7 +94,7 @@ export async function main(argv: string[]): Promise<number> {
   const command = flags.positionals[0];
 
   if (command === "eval") {
-    const result = await runEval(loadFixtures(flags.dir), {
+    const result = await runEval(pickFixtures(loadFixtures(flags.dir), flags.only), {
       model: flags.model,
       thinking: flags.thinking,
     });
