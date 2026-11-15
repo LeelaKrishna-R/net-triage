@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFlags, readInput } from "../src/cli.ts";
+import { evalExitCode, parseFlags, readInput } from "../src/cli.ts";
 
 test("parses the diagnose form with flags", () => {
   const f = parseFlags(["log.txt", "--model", "claude-opus-4-8", "--json"]);
@@ -32,4 +32,19 @@ test("'-' reads stdin (fd 0); anything else is a path", () => {
 
 test("'-' is a positional, not a flag", () => {
   assert.deepEqual(parseFlags(["-", "--json"]).positionals, ["-"]);
+});
+
+test("--min-accuracy: parsed only as a fraction, and an eval below it exits 1", () => {
+  assert.equal(parseFlags(["eval", "--min-accuracy", "0.9"]).minAccuracy, 0.9);
+  assert.equal(parseFlags(["eval", "--min-accuracy", "90"]).minAccuracy, undefined);
+  assert.equal(parseFlags(["eval"]).minAccuracy, undefined);
+  const err = console.error;
+  console.error = () => {};
+  try {
+    assert.equal(evalExitCode(0.875, 0.9), 1);
+  } finally {
+    console.error = err;
+  }
+  assert.equal(evalExitCode(0.95, 0.9), 0);
+  assert.equal(evalExitCode(0.5), 0);
 });

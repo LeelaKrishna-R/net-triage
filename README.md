@@ -77,6 +77,9 @@ ssh r1 'show logging' | node src/cli.ts -
 
 # Run the eval harness across all fixtures:
 node src/cli.ts eval
+
+# ...and fail (exit 1) if accuracy drops below a bar, e.g. in CI after a prompt or model change:
+node src/cli.ts eval --min-accuracy 0.9
 ```
 
 Requires Node 24+ (the CLI runs straight off TypeScript source via Node's native

@@ -12,6 +12,7 @@ export interface Flags {
   thinking: boolean;
   json: boolean;
   dir: string;
+  minAccuracy?: number;
 }
 
 export function parseFlags(args: string[]): Flags {
@@ -20,6 +21,7 @@ export function parseFlags(args: string[]): Flags {
   let thinking = true;
   let json = false;
   let dir = "fixtures";
+  let minAccuracy: number | undefined;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--model") {
@@ -29,6 +31,9 @@ export function parseFlags(args: string[]): Flags {
       thinking = false;
     } else if (a === "--json") {
       json = true;
+    } else if (a === "--min-accuracy") {
+      const v = Number(args[++i]);
+      if (Number.isFinite(v) && v >= 0 && v <= 1) minAccuracy = v;
     } else if (a === "--dir") {
       const v = args[++i];
       if (v !== undefined) dir = v;
@@ -36,7 +41,7 @@ export function parseFlags(args: string[]): Flags {
       positionals.push(a);
     }
   }
-  return { positionals, model, thinking, json, dir };
+  return { positionals, model, thinking, json, dir, minAccuracy };
 }
 
 // "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
@@ -47,9 +52,21 @@ export function readInput(
   return read(file === "-" ? 0 : file);
 }
 
+// For CI: with --min-accuracy, an eval below the bar exits 1 so a model or prompt change can't quietly regress.
+export function evalExitCode(accuracy: number, min?: number): number {
+  if (min === undefined) return 0;
+  if (accuracy < min) {
+    console.error(
+      `Accuracy ${(accuracy * 100).toFixed(0)}% is below --min-accuracy ${(min * 100).toFixed(0)}%.`,
+    );
+    return 1;
+  }
+  return 0;
+}
+
 const USAGE = [
   "usage: net-triage <file | -> [--model m] [--no-thinking] [--json]",
-  "       net-triage eval [--dir fixtures] [--model m] [--no-thinking]",
+  "       net-triage eval [--dir fixtures] [--model m] [--no-thinking] [--min-accuracy 0.9]",
 ].join("\n");
 
 export async function main(argv: string[]): Promise<number> {
@@ -74,7 +91,7 @@ export async function main(argv: string[]): Promise<number> {
     const pct = (result.accuracy * 100).toFixed(0);
     console.log(`\nAccuracy: ${result.correct}/${result.total} (${pct}%)`);
     console.log(`Total cost: $${result.totalCostUsd.toFixed(4)}`);
-    return 0;
+    return evalExitCode(result.accuracy, flags.minAccuracy);
   }
 
   const file = command;
