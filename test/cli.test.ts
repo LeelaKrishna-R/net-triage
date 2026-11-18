@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { evalExitCode, parseFlags, pickFixtures, readInput } from "../src/cli.ts";
+import type Anthropic from "@anthropic-ai/sdk";
+import { evalExitCode, main, parseFlags, pickFixtures, readInput } from "../src/cli.ts";
 
 test("parses the diagnose form with flags", () => {
   const f = parseFlags(["log.txt", "--model", "claude-opus-4-8", "--json"]);
@@ -58,4 +59,33 @@ test("--only runs just the named fixtures and refuses a name that isn't one", ()
   );
   assert.equal(pickFixtures(fx).length, 3);
   assert.throws(() => pickFixtures(fx, ["a", "typo"]), /no fixture named typo/);
+});
+
+test("--json keeps stdout pure JSON: the cost line goes to stderr", async (t) => {
+  const diagnosis = {
+    issue_category: "mtu_mismatch",
+    severity: "high",
+    root_cause: "large packets dropped across the link",
+    evidence: ["mtu 1500", "mtu 9000"],
+    suggested_fix: "match the MTU on both interfaces",
+    confidence: 0.8,
+  };
+  const client = {
+    messages: {
+      parse: async () => ({
+        parsed_output: diagnosis,
+        usage: { input_tokens: 10, output_tokens: 5 },
+        stop_reason: "end_turn",
+      }),
+    },
+  } as unknown as Anthropic;
+  const out: string[] = [];
+  const err: string[] = [];
+  t.mock.method(console, "log", (s: string) => out.push(s));
+  t.mock.method(console, "error", (s: string) => err.push(s));
+  const code = await main(["fixtures/mtu-mismatch/input.txt", "--json", "--no-thinking"], client);
+  t.mock.restoreAll();
+  assert.equal(code, 0);
+  assert.deepEqual(JSON.parse(out.join("\n")), diagnosis);
+  assert.match(err.join("\n"), /Cost: \$/);
 });

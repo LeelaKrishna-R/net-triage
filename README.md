@@ -69,7 +69,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 # Diagnose one file:
 node src/cli.ts fixtures/ospf-adjacency/input.txt
 
-# Or get raw JSON:
+# Or get raw JSON (stdout is only the JSON, so it pipes into jq; the cost line goes to stderr):
 node src/cli.ts fixtures/acl-block/input.txt --json
 
 # Or pipe a device's output straight in with "-":

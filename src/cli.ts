@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs";
+import type Anthropic from "@anthropic-ai/sdk";
 import { fileURLToPath } from "node:url";
 import { diagnose, DEFAULT_MODEL } from "./diagnose.ts";
 import { costUsd } from "./cost.ts";
@@ -89,7 +90,7 @@ const USAGE = [
   "       net-triage eval [--dir fixtures] [--only a,b] [--model m] [--no-thinking] [--min-accuracy 0.9]",
 ].join("\n");
 
-export async function main(argv: string[]): Promise<number> {
+export async function main(argv: string[], client?: Anthropic): Promise<number> {
   const flags = parseFlags(argv);
   const command = flags.positionals[0];
 
@@ -121,11 +122,13 @@ export async function main(argv: string[]): Promise<number> {
   }
   const model = flags.model ?? DEFAULT_MODEL;
   const { diagnosis, usage } = await diagnose(readInput(file), {
+    client,
     model,
     thinking: flags.thinking,
   });
   console.log(flags.json ? JSON.stringify(diagnosis, null, 2) : renderDiagnosis(diagnosis));
-  console.log(`\nCost: $${costUsd(usage, model).toFixed(4)}`);
+  // With --json, stdout carries only the JSON so `net-triage log --json | jq` parses; the cost goes to stderr.
+  (flags.json ? console.error : console.log)(`\nCost: $${costUsd(usage, model).toFixed(4)}`);
   return 0;
 }
 
