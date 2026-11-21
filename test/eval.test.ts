@@ -63,3 +63,24 @@ test("runEval scores accuracy and sums cost", async () => {
     acl_blocking_traffic: { correct: 0, total: 1 },
   });
 });
+
+test("runEval names the wrong answers given with high confidence", async () => {
+  const confidence: Record<string, number> = { "...a": 0.95, "...b": 0.5, "...c": 0.8 };
+  const client = fakeClient(async (params) => {
+    const input = JSON.stringify(params);
+    const key = Object.keys(confidence).find((k) => input.includes(k)) as string;
+    return {
+      parsed_output: { ...sample, confidence: confidence[key] },
+      usage: { input_tokens: 1, output_tokens: 1 },
+      stop_reason: "end_turn",
+    };
+  });
+  const fixtures: Fixture[] = [
+    { name: "sure-and-wrong", input: "...a", expected: "acl_blocking_traffic" },
+    { name: "unsure-and-wrong", input: "...b", expected: "acl_blocking_traffic" },
+    { name: "at-the-line-and-wrong", input: "...c", expected: "stp_loop" },
+    { name: "sure-and-right", input: "...a", expected: "mtu_mismatch" },
+  ];
+  const result = await runEval(fixtures, { client, thinking: false, model: "claude-sonnet-4-6" });
+  assert.deepEqual(result.confidentlyWrong, ["sure-and-wrong", "at-the-line-and-wrong"]);
+});

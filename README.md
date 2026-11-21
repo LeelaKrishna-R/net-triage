@@ -52,6 +52,11 @@ Accuracy: 16/16 (100%)
 Total cost: $0.1977
 ```
 
+Under the accuracy line it also counts the answers that were wrong *and* confident
+(80% or more), and names them: a confidently wrong diagnosis is the one an operator
+acts on without checking, so it matters more than a hesitant miss. (The run above
+predates that line.)
+
 The score depends on the model, so it is meant to be reproduced rather than taken
 on faith — run it with your own key. The fixtures are deliberately clear-cut: the
 number measures that the pipeline classifies correctly end to end, not that the

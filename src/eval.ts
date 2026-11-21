@@ -32,7 +32,12 @@ export interface EvalResult {
   accuracy: number;
   totalCostUsd: number;
   byCategory: Record<string, CategoryScore>;
+  /** Wrong answers given with confidence at or above CONFIDENT: the ones an operator would act on without checking. */
+  confidentlyWrong: string[];
 }
+
+/** The confidence at which a wrong diagnosis counts as confidently wrong. */
+export const CONFIDENT = 0.8;
 
 export function loadFixtures(dir: string): Fixture[] {
   return readdirSync(dir, { withFileTypes: true })
@@ -90,5 +95,8 @@ export async function runEval(
     accuracy: total ? correct / total : 0,
     totalCostUsd: cases.reduce((s, c) => s + c.costUsd, 0),
     byCategory,
+    confidentlyWrong: cases
+      .filter((c) => !c.correct && c.confidence >= CONFIDENT)
+      .map((c) => c.name),
   };
 }

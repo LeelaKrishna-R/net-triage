@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { diagnose, DEFAULT_MODEL } from "./diagnose.ts";
 import { costUsd } from "./cost.ts";
 import { renderDiagnosis } from "./render.ts";
-import { loadFixtures, runEval } from "./eval.ts";
+import { CONFIDENT, loadFixtures, runEval } from "./eval.ts";
 
 export interface Flags {
   positionals: string[];
@@ -111,6 +111,11 @@ export async function main(argv: string[], client?: Anthropic): Promise<number> 
     }
     const pct = (result.accuracy * 100).toFixed(0);
     console.log(`\nAccuracy: ${result.correct}/${result.total} (${pct}%)`);
+    const wrong = result.confidentlyWrong;
+    console.log(
+      `Confidently wrong (${(CONFIDENT * 100).toFixed(0)}%+): ${wrong.length}` +
+        (wrong.length ? ` (${wrong.join(", ")})` : ""),
+    );
     console.log(`Total cost: $${result.totalCostUsd.toFixed(4)}`);
     return evalExitCode(result.accuracy, flags.minAccuracy);
   }
