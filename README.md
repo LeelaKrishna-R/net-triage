@@ -86,6 +86,9 @@ node src/cli.ts eval
 # ...and fail (exit 1) if accuracy drops below a bar, e.g. in CI after a prompt or model change:
 node src/cli.ts eval --min-accuracy 0.9
 
+# The whole result as JSON (for CI or jq), e.g. just the score:
+node src/cli.ts eval --json | jq .accuracy
+
 # See what an eval would run, and each case's label, without calling the API:
 node src/cli.ts eval --list
 

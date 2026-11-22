@@ -91,7 +91,7 @@ export function evalExitCode(accuracy: number, min?: number): number {
 
 const USAGE = [
   "usage: net-triage <file | -> [--model m] [--no-thinking] [--json]",
-  "       net-triage eval [--dir fixtures] [--only a,b] [--model m] [--no-thinking] [--min-accuracy 0.9]",
+  "       net-triage eval [--dir fixtures] [--only a,b] [--model m] [--no-thinking] [--min-accuracy 0.9] [--json]",
   "       net-triage eval --list [--dir fixtures] [--only a,b]",
 ].join("\n");
 
@@ -110,7 +110,13 @@ export async function main(argv: string[], client?: Anthropic): Promise<number> 
     const result = await runEval(fixtures, {
       model: flags.model,
       thinking: flags.thinking,
+      client,
     });
+    // --json: the whole result on stdout for CI or jq (`eval --json | jq .accuracy`); --min-accuracy still sets the exit
+    if (flags.json) {
+      console.log(JSON.stringify(result, null, 2));
+      return evalExitCode(result.accuracy, flags.minAccuracy);
+    }
     for (const c of result.cases) {
       const mark = c.correct ? "PASS" : "FAIL";
       const conf = (c.confidence * 100).toFixed(0);

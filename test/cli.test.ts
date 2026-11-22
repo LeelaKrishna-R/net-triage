@@ -103,3 +103,39 @@ test("eval --list prints each fixture and its label without calling the API", as
   ]);
   assert.equal(parseFlags(["eval"]).list, false);
 });
+
+test("eval --json prints the whole result as JSON and keeps --min-accuracy's exit", async (t) => {
+  const diagnosis = {
+    issue_category: "mtu_mismatch",
+    severity: "high",
+    root_cause: "large packets dropped across the link",
+    evidence: ["mtu 1500", "mtu 9000"],
+    suggested_fix: "match the MTU on both interfaces",
+    confidence: 0.9,
+  };
+  const client = {
+    messages: {
+      parse: async () => ({
+        parsed_output: diagnosis,
+        usage: { input_tokens: 10, output_tokens: 5 },
+        stop_reason: "end_turn",
+      }),
+    },
+  } as unknown as Anthropic;
+  const out: string[] = [];
+  t.mock.method(console, "log", (s: string) => out.push(s));
+  t.mock.method(console, "error", () => {});
+  const ok = await main(["eval", "--json", "--only", "mtu-mismatch", "--no-thinking"], client);
+  const low = await main(
+    ["eval", "--json", "--only", "acl-block", "--no-thinking", "--min-accuracy", "0.9"],
+    client,
+  );
+  t.mock.restoreAll();
+  const [first, second] = out.map((s) => JSON.parse(s));
+  assert.equal(ok, 0);
+  assert.equal(first.accuracy, 1);
+  assert.equal(first.cases[0].name, "mtu-mismatch");
+  assert.equal(low, 1);
+  assert.equal(second.accuracy, 0);
+  assert.deepEqual(second.confidentlyWrong, ["acl-block"]);
+});
