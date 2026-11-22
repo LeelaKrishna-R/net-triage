@@ -89,3 +89,17 @@ test("--json keeps stdout pure JSON: the cost line goes to stderr", async (t) =>
   assert.deepEqual(JSON.parse(out.join("\n")), diagnosis);
   assert.match(err.join("\n"), /Cost: \$/);
 });
+
+test("eval --list prints each fixture and its label without calling the API", async (t) => {
+  const out: string[] = [];
+  t.mock.method(console, "log", (s: string) => out.push(s));
+  const code = await main(["eval", "--list", "--only", "mtu-mismatch,acl-block"]);
+  t.mock.restoreAll();
+  assert.equal(code, 0);
+  assert.deepEqual(out, [
+    "acl-block  acl_blocking_traffic",
+    "mtu-mismatch  mtu_mismatch",
+    "\n2 fixtures",
+  ]);
+  assert.equal(parseFlags(["eval"]).list, false);
+});

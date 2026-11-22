@@ -15,6 +15,7 @@ export interface Flags {
   dir: string;
   minAccuracy?: number;
   only?: string[];
+  list: boolean;
 }
 
 export function parseFlags(args: string[]): Flags {
@@ -25,6 +26,7 @@ export function parseFlags(args: string[]): Flags {
   let dir = "fixtures";
   let minAccuracy: number | undefined;
   let only: string[] | undefined;
+  let list = false;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--model") {
@@ -34,6 +36,8 @@ export function parseFlags(args: string[]): Flags {
       thinking = false;
     } else if (a === "--json") {
       json = true;
+    } else if (a === "--list") {
+      list = true;
     } else if (a === "--min-accuracy") {
       const v = Number(args[++i]);
       if (Number.isFinite(v) && v >= 0 && v <= 1) minAccuracy = v;
@@ -51,7 +55,7 @@ export function parseFlags(args: string[]): Flags {
       positionals.push(a);
     }
   }
-  return { positionals, model, thinking, json, dir, minAccuracy, only };
+  return { positionals, model, thinking, json, dir, minAccuracy, only, list };
 }
 
 // "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
@@ -88,6 +92,7 @@ export function evalExitCode(accuracy: number, min?: number): number {
 const USAGE = [
   "usage: net-triage <file | -> [--model m] [--no-thinking] [--json]",
   "       net-triage eval [--dir fixtures] [--only a,b] [--model m] [--no-thinking] [--min-accuracy 0.9]",
+  "       net-triage eval --list [--dir fixtures] [--only a,b]",
 ].join("\n");
 
 export async function main(argv: string[], client?: Anthropic): Promise<number> {
@@ -95,7 +100,14 @@ export async function main(argv: string[], client?: Anthropic): Promise<number> 
   const command = flags.positionals[0];
 
   if (command === "eval") {
-    const result = await runEval(pickFixtures(loadFixtures(flags.dir), flags.only), {
+    const fixtures = pickFixtures(loadFixtures(flags.dir), flags.only);
+    // --list shows what an eval would run and each label, with no API call: names to pass to --only, for free.
+    if (flags.list) {
+      for (const f of fixtures) console.log(`${f.name}  ${f.expected}`);
+      console.log(`\n${fixtures.length} fixtures`);
+      return 0;
+    }
+    const result = await runEval(fixtures, {
       model: flags.model,
       thinking: flags.thinking,
     });
