@@ -14,6 +14,8 @@ export interface Flags {
   json: boolean;
   dir: string;
   minAccuracy?: number;
+  // the --min-accuracy value as given when it isn't a fraction from 0 to 1 ("90", "abc", or nothing after it)
+  badMinAccuracy?: string;
   only?: string[];
   list: boolean;
 }
@@ -25,6 +27,7 @@ export function parseFlags(args: string[]): Flags {
   let json = false;
   let dir = "fixtures";
   let minAccuracy: number | undefined;
+  let badMinAccuracy: string | undefined;
   let only: string[] | undefined;
   let list = false;
   for (let i = 0; i < args.length; i++) {
@@ -39,8 +42,11 @@ export function parseFlags(args: string[]): Flags {
     } else if (a === "--list") {
       list = true;
     } else if (a === "--min-accuracy") {
-      const v = Number(args[++i]);
-      if (Number.isFinite(v) && v >= 0 && v <= 1) minAccuracy = v;
+      const raw = args[++i];
+      const v = Number(raw);
+      if (raw !== undefined && raw.trim() !== "" && Number.isFinite(v) && v >= 0 && v <= 1)
+        minAccuracy = v;
+      else badMinAccuracy = raw ?? "";
     } else if (a === "--only") {
       const v = args[++i];
       if (v !== undefined)
@@ -55,7 +61,7 @@ export function parseFlags(args: string[]): Flags {
       positionals.push(a);
     }
   }
-  return { positionals, model, thinking, json, dir, minAccuracy, only, list };
+  return { positionals, model, thinking, json, dir, minAccuracy, badMinAccuracy, only, list };
 }
 
 // "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
@@ -100,6 +106,14 @@ export async function main(argv: string[], client?: Anthropic): Promise<number> 
   const command = flags.positionals[0];
 
   if (command === "eval") {
+    // A bar that didn't parse would leave the eval ungated and exit 0 after spending the calls, so CI would pass on
+    // any accuracy: refuse it before any API call.
+    if (flags.badMinAccuracy !== undefined) {
+      console.error(
+        `--min-accuracy takes a fraction from 0 to 1 (0.9 for 90%), not "${flags.badMinAccuracy}".`,
+      );
+      return 2;
+    }
     const fixtures = pickFixtures(loadFixtures(flags.dir), flags.only);
     // --list shows what an eval would run and each label, with no API call: names to pass to --only, for free.
     if (flags.list) {

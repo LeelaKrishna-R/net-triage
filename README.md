@@ -83,7 +83,8 @@ ssh r1 'show logging' | node src/cli.ts -
 # Run the eval harness across all fixtures:
 node src/cli.ts eval
 
-# ...and fail (exit 1) if accuracy drops below a bar, e.g. in CI after a prompt or model change:
+# ...and fail (exit 1) if accuracy drops below a bar, e.g. in CI after a prompt or model change
+# (a fraction; anything else, like 90, is refused with exit 2 before any API call):
 node src/cli.ts eval --min-accuracy 0.9
 
 # The whole result as JSON (for CI or jq), e.g. just the score:

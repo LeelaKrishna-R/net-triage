@@ -39,6 +39,10 @@ test("--min-accuracy: parsed only as a fraction, and an eval below it exits 1", 
   assert.equal(parseFlags(["eval", "--min-accuracy", "0.9"]).minAccuracy, 0.9);
   assert.equal(parseFlags(["eval", "--min-accuracy", "90"]).minAccuracy, undefined);
   assert.equal(parseFlags(["eval"]).minAccuracy, undefined);
+  assert.equal(parseFlags(["eval", "--min-accuracy", "90"]).badMinAccuracy, "90");
+  assert.equal(parseFlags(["eval", "--min-accuracy", ""]).badMinAccuracy, "");
+  assert.equal(parseFlags(["eval", "--min-accuracy"]).badMinAccuracy, "");
+  assert.equal(parseFlags(["eval", "--min-accuracy", "0.9"]).badMinAccuracy, undefined);
   const err = console.error;
   console.error = () => {};
   try {
@@ -138,4 +142,23 @@ test("eval --json prints the whole result as JSON and keeps --min-accuracy's exi
   assert.equal(low, 1);
   assert.equal(second.accuracy, 0);
   assert.deepEqual(second.confidentlyWrong, ["acl-block"]);
+});
+
+test("eval refuses a --min-accuracy that isn't a fraction, before any API call", async () => {
+  const client = {
+    messages: {
+      create: () => {
+        throw new Error("no API call expected");
+      },
+    },
+  } as unknown as Anthropic;
+  const seen: string[] = [];
+  const err = console.error;
+  console.error = (s: string) => seen.push(s);
+  try {
+    assert.equal(await main(["eval", "--only", "acl-block", "--min-accuracy", "90"], client), 2);
+  } finally {
+    console.error = err;
+  }
+  assert.match(seen.join("\n"), /fraction from 0 to 1 \(0\.9 for 90%\), not "90"/);
 });
