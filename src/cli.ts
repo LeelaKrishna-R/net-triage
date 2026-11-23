@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import type Anthropic from "@anthropic-ai/sdk";
 import { fileURLToPath } from "node:url";
 import { diagnose, DEFAULT_MODEL } from "./diagnose.ts";
-import { costUsd } from "./cost.ts";
+import { costUsd, MODEL_PRICING } from "./cost.ts";
 import { renderDiagnosis } from "./render.ts";
 import { CONFIDENT, loadFixtures, runEval } from "./eval.ts";
 
@@ -101,9 +101,21 @@ const USAGE = [
   "       net-triage eval --list [--dir fixtures] [--only a,b]",
 ].join("\n");
 
+// Every call is priced from MODEL_PRICING; a model with no price there used to fail only after its first paid call
+// (an eval stopped one fixture in, a diagnosis printed and then exited 2), so it is refused before any call.
+export function unpricedModel(model: string | undefined): string | undefined {
+  if (model === undefined || model in MODEL_PRICING) return undefined;
+  return `No price for model ${model}, so its cost can't be shown. Priced: ${Object.keys(MODEL_PRICING).join(", ")}.`;
+}
+
 export async function main(argv: string[], client?: Anthropic): Promise<number> {
   const flags = parseFlags(argv);
   const command = flags.positionals[0];
+  const unpriced = flags.list ? undefined : unpricedModel(flags.model);
+  if (unpriced) {
+    console.error(unpriced);
+    return 2;
+  }
 
   if (command === "eval") {
     // A bar that didn't parse would leave the eval ungated and exit 0 after spending the calls, so CI would pass on

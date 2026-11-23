@@ -1,7 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type Anthropic from "@anthropic-ai/sdk";
-import { evalExitCode, main, parseFlags, pickFixtures, readInput } from "../src/cli.ts";
+import {
+  evalExitCode,
+  main,
+  parseFlags,
+  pickFixtures,
+  readInput,
+  unpricedModel,
+} from "../src/cli.ts";
 
 test("parses the diagnose form with flags", () => {
   const f = parseFlags(["log.txt", "--model", "claude-opus-4-8", "--json"]);
@@ -161,4 +168,32 @@ test("eval refuses a --min-accuracy that isn't a fraction, before any API call",
     console.error = err;
   }
   assert.match(seen.join("\n"), /fraction from 0 to 1 \(0\.9 for 90%\), not "90"/);
+});
+
+test("a model with no price is refused before any API call, for eval and a diagnosis", async () => {
+  const client = {
+    messages: {
+      create: () => {
+        throw new Error("no API call expected");
+      },
+    },
+  } as unknown as Anthropic;
+  const seen: string[] = [];
+  const err = console.error;
+  console.error = (s: string) => seen.push(s);
+  try {
+    assert.equal(
+      await main(["eval", "--only", "acl-block", "--model", "claude-nope-1"], client),
+      2,
+    );
+    assert.equal(
+      await main(["fixtures/acl-block/input.txt", "--model", "claude-nope-1"], client),
+      2,
+    );
+  } finally {
+    console.error = err;
+  }
+  assert.match(seen[0], /^No price for model claude-nope-1, so its cost can't be shown\. Priced: /);
+  assert.equal(unpricedModel(undefined), undefined);
+  assert.equal(unpricedModel("claude-sonnet-4-6"), undefined);
 });
