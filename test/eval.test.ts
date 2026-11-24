@@ -84,3 +84,14 @@ test("runEval names the wrong answers given with high confidence", async () => {
   const result = await runEval(fixtures, { client, thinking: false, model: "claude-sonnet-4-6" });
   assert.deepEqual(result.confidentlyWrong, ["sure-and-wrong", "at-the-line-and-wrong"]);
 });
+
+test("loadFixtures names the fixture whose expected.json isn't valid JSON", () => {
+  const dir = mkdtempSync(join(tmpdir(), "nt-fix-"));
+  mkdirSync(join(dir, "broken-one"));
+  writeFileSync(join(dir, "broken-one", "input.txt"), "log");
+  writeFileSync(join(dir, "broken-one", "expected.json"), '{"issue_category": "mtu_mismatch",}');
+  assert.throws(
+    () => loadFixtures(dir),
+    /^Error: fixture "broken-one": expected\.json isn't valid JSON \(/,
+  );
+});

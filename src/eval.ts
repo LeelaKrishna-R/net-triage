@@ -44,7 +44,14 @@ export function loadFixtures(dir: string): Fixture[] {
     .filter((e) => e.isDirectory())
     .map((e) => {
       const input = readFileSync(join(dir, e.name, "input.txt"), "utf8");
-      const meta = JSON.parse(readFileSync(join(dir, e.name, "expected.json"), "utf8"));
+      let meta: { issue_category?: unknown } | undefined;
+      try {
+        meta = JSON.parse(readFileSync(join(dir, e.name, "expected.json"), "utf8"));
+      } catch (err) {
+        // a bare "Unexpected token } in JSON" said nothing about which of the fixtures was broken
+        if (!(err instanceof SyntaxError)) throw err;
+        throw new Error(`fixture "${e.name}": expected.json isn't valid JSON (${err.message})`);
+      }
       const expected = meta?.issue_category;
       if (
         typeof expected !== "string" ||
