@@ -197,3 +197,29 @@ test("a model with no price is refused before any API call, for eval and a diagn
   assert.equal(unpricedModel(undefined), undefined);
   assert.equal(unpricedModel("claude-sonnet-4-6"), undefined);
 });
+
+test("eval --list --json prints each fixture and its label as JSON, with no API call", async () => {
+  const client = {
+    messages: {
+      create: () => {
+        throw new Error("no API call expected");
+      },
+    },
+  } as unknown as Anthropic;
+  const out: string[] = [];
+  const log = console.log;
+  console.log = (s: string) => out.push(s);
+  try {
+    assert.equal(
+      await main(["eval", "--list", "--json", "--only", "acl-block,mtu-mismatch"], client),
+      0,
+    );
+  } finally {
+    console.log = log;
+  }
+  assert.equal(out.length, 1);
+  assert.deepEqual(JSON.parse(out[0]), [
+    { name: "acl-block", expected: "acl_blocking_traffic" },
+    { name: "mtu-mismatch", expected: "mtu_mismatch" },
+  ]);
+});

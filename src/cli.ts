@@ -98,7 +98,7 @@ export function evalExitCode(accuracy: number, min?: number): number {
 const USAGE = [
   "usage: net-triage <file | -> [--model m] [--no-thinking] [--json]",
   "       net-triage eval [--dir fixtures] [--only a,b] [--model m] [--no-thinking] [--min-accuracy 0.9] [--json]",
-  "       net-triage eval --list [--dir fixtures] [--only a,b]",
+  "       net-triage eval --list [--dir fixtures] [--only a,b] [--json]",
 ].join("\n");
 
 // Every call is priced from MODEL_PRICING; a model with no price there used to fail only after its first paid call
@@ -129,6 +129,11 @@ export async function main(argv: string[], client?: Anthropic): Promise<number> 
     const fixtures = pickFixtures(loadFixtures(flags.dir), flags.only);
     // --list shows what an eval would run and each label, with no API call: names to pass to --only, for free.
     if (flags.list) {
+      // --json: the same list for a script (`eval --list --json | jq -r '.[].name'`)
+      if (flags.json) {
+        console.log(JSON.stringify(fixtures.map((f) => ({ name: f.name, expected: f.expected }))));
+        return 0;
+      }
       for (const f of fixtures) console.log(`${f.name}  ${f.expected}`);
       console.log(`\n${fixtures.length} fixtures`);
       return 0;
