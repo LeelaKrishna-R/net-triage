@@ -231,3 +231,26 @@ test("eval --list --json prints each fixture and its label as JSON, with no API 
     { name: "mtu-mismatch", expected: "mtu_mismatch" },
   ]);
 });
+
+test("an unknown flag is refused before any API call, never run as if it weren't there", async () => {
+  assert.deepEqual(parseFlags(["log.txt", "--jsn", "-x"]).unknown, ["--jsn", "-x"]);
+  assert.deepEqual(parseFlags(["-", "--json"]).unknown, []);
+  const client = {
+    messages: {
+      create: () => {
+        throw new Error("no API call expected");
+      },
+    },
+  } as unknown as Anthropic;
+  const seen: string[] = [];
+  const err = console.error;
+  console.error = (s: string) => seen.push(s);
+  try {
+    assert.equal(await main(["fixtures/acl-block/input.txt", "--jsn"], client), 2);
+    assert.equal(await main(["eval", "--only", "acl-block", "--no-thnking"], client), 2);
+  } finally {
+    console.error = err;
+  }
+  assert.match(seen[0], /^Unknown flag --jsn; nothing was run\.\nusage: net-triage/);
+  assert.match(seen[1], /^Unknown flag --no-thnking; nothing was run\./);
+});

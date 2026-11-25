@@ -18,6 +18,8 @@ export interface Flags {
   badMinAccuracy?: string;
   only?: string[];
   list: boolean;
+  // flags that aren't net-triage's ("--jsn", "--modle"): a typo must not run, and spend, as if it weren't there
+  unknown: string[];
 }
 
 export function parseFlags(args: string[]): Flags {
@@ -30,6 +32,7 @@ export function parseFlags(args: string[]): Flags {
   let badMinAccuracy: string | undefined;
   let only: string[] | undefined;
   let list = false;
+  const unknown: string[] = [];
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--model") {
@@ -57,11 +60,24 @@ export function parseFlags(args: string[]): Flags {
     } else if (a === "--dir") {
       const v = args[++i];
       if (v !== undefined) dir = v;
+    } else if (a.startsWith("-") && a !== "-") {
+      unknown.push(a);
     } else {
       positionals.push(a);
     }
   }
-  return { positionals, model, thinking, json, dir, minAccuracy, badMinAccuracy, only, list };
+  return {
+    positionals,
+    model,
+    thinking,
+    json,
+    dir,
+    minAccuracy,
+    badMinAccuracy,
+    only,
+    list,
+    unknown,
+  };
 }
 
 // "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
@@ -116,6 +132,10 @@ export function unpricedModel(model: string | undefined): string | undefined {
 
 export async function main(argv: string[], client?: Anthropic): Promise<number> {
   const flags = parseFlags(argv);
+  if (flags.unknown.length) {
+    console.error(`Unknown flag ${flags.unknown.join(", ")}; nothing was run.\n${USAGE}`);
+    return 2;
+  }
   const command = flags.positionals[0];
   const unpriced = flags.list ? undefined : unpricedModel(flags.model);
   if (unpriced) {
