@@ -30,10 +30,18 @@ test("a value flag with no following value keeps its default", () => {
   assert.equal(parseFlags(["log.txt", "--model"]).model, undefined);
 });
 
+test("'-' with nothing piped in is an error, never a wait on the terminal", () => {
+  assert.throws(() => readInput("-", () => "never read", true), /nothing was piped/);
+  assert.equal(
+    readInput("-", () => "log", false),
+    "log",
+  );
+});
+
 test("'-' reads stdin (fd 0); anything else is a path", () => {
   const seen: Array<string | number> = [];
   const read = (f: string | number) => (seen.push(f), "log");
-  readInput("-", read);
+  readInput("-", read, false);
   readInput("show-log.txt", read);
   assert.deepEqual(seen, [0, "show-log.txt"]);
 });

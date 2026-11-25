@@ -65,10 +65,16 @@ export function parseFlags(args: string[]): Flags {
 }
 
 // "-" reads the log from stdin, so output can be piped straight in: `ssh r1 'show logging' | net-triage -`.
+// With nothing piped in, "-" would wait on the terminal forever: say how to use it instead.
 export function readInput(
   file: string,
   read: (f: string | number) => string = (f) => readFileSync(f, "utf8"),
+  stdinIsTTY: boolean = Boolean(process.stdin.isTTY),
 ): string {
+  if (file === "-" && stdinIsTTY)
+    throw new Error(
+      "'-' reads a log piped in (e.g. `ssh r1 'show logging' | net-triage -`); nothing was piped",
+    );
   return read(file === "-" ? 0 : file);
 }
 
